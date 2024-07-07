@@ -1,341 +1,294 @@
-// Importar librerias nativas de flutter, material para usar los componentes de la interfaz
-// provider para almacenar estados y compartirlos entre widgets
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_lato/db.dart'; // MODELO // CONTROLADOR
-import 'package:flutter_lato/task.dart';
 
-// Inicio de la aplicacion
-// Usamos const en muchas declaraciones por que VSCODE nos recomendo que era
-// bueno para el rendimiento
 void main() {
   runApp(const MyApp());
 }
 
-// Creamos el tipo Task para usarlo en la variable que sera cada item de tarea
-class TaskContextItem {
-  final String title;
-  bool completed;
+class Message {
+  final String content;
+  final DateTime timestamp;
+  bool isImportant;
 
-  TaskContextItem({required this.title, this.completed = false});
+  Message({
+    required this.content,
+    required this.timestamp,
+    this.isImportant = false,
+  });
 }
 
-// Creamos el provider Tasks que es el equivalente al contexto en React, nos petmite
-// guardar informacion en el componente y acceder a ella, ChangeNotifier nos permite
-// disparar un trigger cuando se modifica el provider, entonces podemos actualizar
-// la lista de tareas al agregar o eliminar una
-class TasksProvider extends ChangeNotifier {
-  List<Task> _tasks = [];
+class MessagesProvider extends ChangeNotifier {
+  List<Message> _messages = [];
 
-  List<Task> get tasks => _tasks;
+  List<Message> get messages => _messages;
 
-  void addTask(Task task) {
-    _tasks.add(task);
+  void addMessage(Message message) {
+    _messages.add(message);
     notifyListeners();
   }
 
-  void removeTask(int index) {
-    _tasks.removeAt(index);
+  void removeMessage(int index) {
+    _messages.removeAt(index);
     notifyListeners();
+  }
+
+  void toggleImportant(int index) {
+    _messages[index].isImportant = !_messages[index].isImportant;
+    notifyListeners();
+  }
+
+  List<Message> getImportantMessages() {
+    return _messages.where((message) => message.isImportant).toList();
   }
 }
 
-// El widget principal los demas widgets que funcionaran como paginas seran hijos
-// de este componente
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-// la directiva override se usa para sobreescribir una propiedad heredada de la clase
-// padre o interfaz. con widget build generamos el contenidos del widget
   @override
   Widget build(BuildContext context) {
-    // Definimos el provider principal y 2 propiedades importantes
-    // create para poder usar el TaksProvider dentro de los widgets hijos,
-    // esto es equuivalente a CreateContext en REACT,
-    // y por ultimo routes, para que los widgets hijos funciones como paginas
-    // con rutas que podemos linkear a botones o enlaces en otros widgets
     return ChangeNotifierProvider(
-      create: (context) => TasksProvider(),
+      create: (context) => MessagesProvider(),
       child: MaterialApp(
-        title: 'Aplicacion Basica',
-        home: const HomePage(),
+        debugShowCheckedModeBanner: false,
+        title: 'Chat with me',
+        theme: ThemeData(
+          primarySwatch: Colors.teal,
+          scaffoldBackgroundColor: Color.fromARGB(255, 34, 54, 72),
+          appBarTheme: const AppBarTheme(
+            color: Color.fromARGB(255, 9, 36, 62),
+            iconTheme: IconThemeData(color: Colors.white),
+          ),
+        ),
+        home: const SplashScreen(),
         routes: {
-          '/home': (context) => const HomePage(),
-          '/second': (context) => const SecondPage(),
-          '/taks': (context) => const TaskList(),
+          '/messages': (context) => const MessageList(),
+          '/important': (context) => const ImportantMessagesPage(),
         },
       ),
     );
   }
 }
 
-// La pagina principal, aqui conservamos el widget de la app
-// por defecto de flutter, contiene un contador que incrementa cuando presionamos un boton
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int _counter = 0;
-
-  // similar a otros frameworks definimos una funcionar para modificar el estado
-  // del contador, que simplemente aumenta su valor en uno
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pagina Principal'),
-      ),
-      // Drawer es un componente de MATERIAL UI que consiste en un contenedor desplegable
-      // que se abre desde el costado de la pantalla y podemos agregar elementos andentro
-      // dentro hemos agregado una lista de elementos que son botones que abren las otras paginas
-      // usando el onTap para detectar el click y Navigator.popAndPush named para abrir la
-      // pagina seleccionada
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text('Menu de Navegacion'),
-            ),
-            ListTile(
-              title: const Text('Pagina Principal'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/home');
-              },
-            ),
-            ListTile(
-              title: const Text('Segunda Pagina'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/second');
-              },
-            ),
-            ListTile(
-              title: const Text('Tareas'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/taks');
-              },
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: Color.fromARGB(255, 34, 54, 72),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'Hola! Has presionado el boton estas veces:',
-            ),
+          children: [
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            // onPressed es un evento similar al onClick de javascript, que ejecuta una funcion cuando
-            // presionamos el boton
-            ElevatedButton(
-              onPressed: _incrementCounter,
-              child: const Text('Incrementar Contador'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// En esta segunda pagina, es igual que la primera, pero simplemente dejamos un texto plano
-// se creo para probar que  funcionaba el router
-class SecondPage extends StatelessWidget {
-  const SecondPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Segunda Pagina'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
+              'Chat\n with\n  me',
+              style: TextStyle(
+                fontSize: 80.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              child: Text('Menu de Navegacion'),
             ),
-            ListTile(
-              title: const Text('Pagina Principal'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/home');
+            const SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/messages');
               },
-            ),
-            ListTile(
-              title: const Text('Segunda Pagina'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/second');
-              },
-            ),
-            ListTile(
-              title: const Text('Tareas'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/taks');
-              },
+              child: Text('Entrar'),
             ),
           ],
         ),
-      ),
-      body: const Center(
-        child: Text('Bienvenido a la segunda pagina!'),
       ),
     );
   }
 }
 
-// widget de la pagina 3, la lista de tareas
-class TaskList extends StatefulWidget {
-  // constructor de la clase
-  const TaskList({super.key});
+class MessageList extends StatefulWidget {
+  const MessageList({super.key});
+
   @override
-  _TaskListState createState() => _TaskListState();
+  _MessageListState createState() => _MessageListState();
 }
 
-class _TaskListState extends State<TaskList> {
-  // creamos un controller de tipo TextEditing que es un componente de flutter para un
-  // input de texto
+class _MessageListState extends State<MessageList> {
   TextEditingController _controller = TextEditingController();
-
-  List<Task> tasks = [];
 
   @override
   void initState() {
-    cargaTaks();
+    cargaMessages();
     super.initState();
   }
 
-  cargaTaks() async {
-    List<Task> auxTask = await DB.tasks();
-
+  cargaMessages() async {
+    // Simula la carga de mensajes desde una base de datos
+    // Aquí puedes integrar tu lógica de base de datos
     setState(() {
-      tasks = auxTask;
+      // Mensaje de prueba inicial
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // guardamos en una variable el provider que definimos anterioemente
-    // var tasksProvider = Provider.of<TasksProvider>(context);
+    var messagesProvider = Provider.of<MessagesProvider>(context);
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Lista de tareas'),
+      appBar: AppBar(
+        title: const Text('Chat with me'),
+        titleTextStyle: TextStyle(
+          fontSize: 25.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
-        // imprimimos el mismo menu que las otras paginas
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: Text('Menu de Navegacion'),
-              ),
-              ListTile(
-                title: const Text('Pagina Principal'),
-                onTap: () {
-                  Navigator.popAndPushNamed(context, '/home');
-                },
-              ),
-              ListTile(
-                title: const Text('Segunda Pagina'),
-                onTap: () {
-                  Navigator.popAndPushNamed(context, '/second');
-                },
-              ),
-              ListTile(
-                title: const Text('Tareas'),
-                onTap: () {
-                  Navigator.popAndPushNamed(context, '/taks');
-                },
-              ),
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.star),
+            color: Colors.amber,
+            onPressed: () {
+              Navigator.pushNamed(context, '/important');
+            },
           ),
-        ),
-        // En el contenido del componente tenemos 2 elementos
-        // Padding con el input de texto para agregar nuevas tareas
-        // el evento onPressed agrega el contenido del input a la lista de tareas y limpia el input
-
-        // Expanded contiene la lista de tareas existentes
-        // El componente Consumer permite que la lista se actualice cuando se agrega un
-        // elemento, y cada elementos mostrado de la lista contiene un boton que elimina esa tarea de la lista
-        // usando tasksProvider.removeTask(index);
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  labelText: 'Nueva tarea',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.add),
-                    onPressed: () {
-                      if (_controller.text.isNotEmpty) {
-                        // tasksProvider.addTask(Task(title: _controller.text));
-                        DB.insert(Task(
-                            nombre: _controller.text,
-                            estado: 'pending',
-                            id: DateTime.now().millisecondsSinceEpoch %
-                                1000000));
-                        _controller.clear();
-                        cargaTaks();
-                      }
-                    },
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Nuevo mensaje'),
+              content: Container(
+                width: double.maxFinite,
+                child: TextField(
+                  controller: _controller,
+                  maxLines: null, // Permite múltiples líneas
+                  keyboardType: TextInputType.multiline,
+                  textAlign:
+                      TextAlign.center, // Centra el texto dentro del TextField
+                  decoration: const InputDecoration(
+                    labelText: 'Escribe tu mensaje...',
+                    border: OutlineInputBorder(),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Consumer<TasksProvider>(
-                builder: (context, tasksProvider, child) {
-                  // Aqui usamos el componente ListView como si fuera un forEach
-                  // para imprimir tantos elementos existan en tasksProvider
-                  // utilizamos el parametro index dentro de itemBuilder poder
-                  // identificar el elemento que debemos eliminar como removeTask
-                  return ListView.builder(
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(tasks[index].nombre),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            // tasksProvider.removeTask(index);
-                            DB.delete(tasks[index]);
-                            cargaTaks();
-                          },
-                        ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_controller.text.isNotEmpty) {
+                      var newMessage = Message(
+                        content: _controller.text,
+                        timestamp: DateTime.now(),
                       );
-                    },
-                  );
+                      messagesProvider.addMessage(newMessage);
+                      _controller.clear();
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Enviar'),
+                ),
+              ],
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 9, 36, 62),
+        foregroundColor: Colors.white,
+      ),
+      body: Consumer<MessagesProvider>(
+        builder: (context, messagesProvider, child) {
+          return ListView.builder(
+            itemCount: messagesProvider.messages.length,
+            itemBuilder: (context, index) {
+              var message = messagesProvider.messages[index];
+              return Card(
+                elevation: 3,
+                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: ListTile(
+                  title: Text(
+                    message.content,
+                    style:
+                        TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    message.timestamp.toString(),
+                    style: TextStyle(fontSize: 14.0, color: Colors.black),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          message.isImportant ? Icons.star : Icons.star_border,
+                          color: message.isImportant ? Colors.amber : null,
+                        ),
+                        onPressed: () {
+                          messagesProvider.toggleImportant(index);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          messagesProvider.removeMessage(index);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ImportantMessagesPage extends StatelessWidget {
+  const ImportantMessagesPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    var messagesProvider = Provider.of<MessagesProvider>(context);
+    var importantMessages = messagesProvider.getImportantMessages();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mensajes Importantes'),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 23.0,
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: importantMessages.length,
+        itemBuilder: (context, index) {
+          var message = importantMessages[index];
+          return Card(
+            elevation: 3,
+            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: ListTile(
+              title: Text(
+                message.content,
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                message.timestamp.toString(),
+                style: TextStyle(fontSize: 14.0, color: Colors.black),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  messagesProvider.removeMessage(index);
                 },
               ),
             ),
-          ],
-        ));
+          );
+        },
+      ),
+    );
   }
 }
