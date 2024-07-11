@@ -4,10 +4,10 @@ import 'package:path/path.dart';
 
 class DB {
   static Future<Database> _openDB() async {
-    return openDatabase(join(await getDatabasesPath(), 'tasks.db'),
+    return openDatabase(join(await getDatabasesPath(), 'tasksv2.db'),
         onCreate: (db, version) {
       return db.execute(
-        "CREATE TABLE tasks (id INTEGER PRIMARY KEY, nombre TEXT, estado TEXT)",
+        "CREATE TABLE tasks (id INTEGER PRIMARY KEY, nombre TEXT, estado INTEGER, time TEXT)",
       );
     }, version: 1);
   }
@@ -40,7 +40,8 @@ class DB {
         (i) => Task(
             id: tasksMap[i]['id'],
             nombre: tasksMap[i]['nombre'],
-            estado: tasksMap[i]['estado']));
+            estado: tasksMap[i]['estado'],
+            time: tasksMap[i]['time']));
   }
 
   // CON SENTENCIAS
