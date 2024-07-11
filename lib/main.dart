@@ -7,43 +7,6 @@ void main() {
   runApp(const MyApp());
 }
 
-// class Message {
-//   final String content;
-//   final DateTime timestamp;
-//   bool isImportant;
-
-//   Message({
-//     required this.content,
-//     required this.timestamp,
-//     this.isImportant = false,
-//   });
-// }
-
-// class MessagesProvider extends ChangeNotifier {
-//   List<Message> _messages = [];
-
-//   List<Message> get messages => _messages;
-
-//   void addMessage(Message message) {
-//     _messages.add(message);
-//     notifyListeners();
-//   }
-
-//   void removeMessage(int index) {
-//     _messages.removeAt(index);
-//     notifyListeners();
-//   }
-
-//   void toggleImportant(int index) {
-//     _messages[index].isImportant = !_messages[index].isImportant;
-//     notifyListeners();
-//   }
-
-//   List<Message> getImportantMessages() {
-//     return _messages.where((message) => message.isImportant).toList();
-//   }
-// }
-
 // Creamos el tipo Task para usarlo en la variable que sera cada item de tarea
 class TaskContextItem {
   final String title;
@@ -142,20 +105,6 @@ class MessageList extends StatefulWidget {
 
 class _MessageListState extends State<MessageList> {
   TextEditingController _controller = TextEditingController();
-
-  // @override
-  // void initState() {
-  //   cargaMessages();
-  //   super.initState();
-  // }
-
-  // cargaMessages() async {
-  //   // Simula la carga de mensajes desde una base de datos
-  //   // Aquí puedes integrar tu lógica de base de datos
-  //   setState(() {
-  //     // Mensaje de prueba inicial
-  //   });
-  // }
 
   List<Task> tasks = [];
 
