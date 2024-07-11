@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_lato/db.dart'; // MODELO // CONTROLADOR
-import 'package:flutter_lato/task.dart';
+import 'package:flutter_lato/task.dart'; // SCHEMA DE LA BD
 
 void main() {
   runApp(const MyApp());
